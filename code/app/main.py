@@ -10,10 +10,8 @@ connectors = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # create the database engine
     connectors["engine"] = SqlEngine()
     yield
-    # Clean up the ML models and release the resources
     connectors.clear()
 
 app = FastAPI()
