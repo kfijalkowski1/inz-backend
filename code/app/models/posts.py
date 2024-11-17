@@ -1,6 +1,4 @@
 from pydantic import BaseModel
-from fastapi import UploadFile, File
-from typing import List
 
 class PostBase(BaseModel):
     title: str
