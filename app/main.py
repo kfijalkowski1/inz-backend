@@ -1,6 +1,20 @@
 from fastapi import FastAPI
+
+from database.utils import SqlEngine
 from .routers import posts_router
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+connectors = {}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # create the database engine
+    connectors["engine"] = SqlEngine()
+    yield
+    # Clean up the ML models and release the resources
+    connectors.clear()
 
 app = FastAPI()
 
