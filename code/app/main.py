@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
-from database.utils import SqlEngine
-from .routers import posts_router
+from code.database.utils import SqlEngine
+from code.app.routers import posts_router
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 

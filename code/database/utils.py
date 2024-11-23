@@ -3,15 +3,15 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy_utils import database_exists, create_database
-from database.declarations.common import Base
-from package_utils import logger
+from code.package_utils import logger
+from code.database.declarations.common import Base
 from sqlalchemy.orm import sessionmaker
 
 # Database configuration
 POSTGRESQL_HOST = "localhost" if os.path.exists(".env") else "postgres.default.svc.cluster.local"
 POSTGRESQL_PORT = 5432
 POSTGRESQL_USERNAME = "postgres"
-POSTGRESQL_PASSWORD = "password"
+POSTGRESQL_PASSWORD = "crazyPass"
 DATABASE_NAME = "estate_management"
 
 url = URL.create(
