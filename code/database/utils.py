@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 POSTGRESQL_HOST = "localhost" if os.path.exists(".env") else "postgres.default.svc.cluster.local"
 POSTGRESQL_PORT = 5432
 POSTGRESQL_USERNAME = "postgres"
-POSTGRESQL_PASSWORD = "crazyPass"
+POSTGRESQL_PASSWORD = "crazyPass" if os.path.exists(".env") else "password"
 DATABASE_NAME = "estate_management"
 
 url = URL.create(
