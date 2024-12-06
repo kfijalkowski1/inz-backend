@@ -8,6 +8,8 @@ class PostBase(BaseModel):
 class PostResponse(PostBase):
     id: str
     created_at: str
+    author_name: str
+    author_id: str
 
     class Config:
         orm_mode = True
