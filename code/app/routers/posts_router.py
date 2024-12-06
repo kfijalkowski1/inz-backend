@@ -49,9 +49,10 @@ async def user_post(post_id: str, current_user: Annotated[User, Depends(get_curr
         return True
     return False
 
-@router.post("{post_id}/edit", response_model=PostResponse)
+@router.post("/edit/{post_id}", response_model=PostResponse)
 async def edit_post(post_id: str, item: PostBase, current_user: Annotated[User, Depends(get_current_active_user)], db_session: Session = Depends(get_db)):
     post_db = get_post(db_session, post_id)
+    logger.info("DDDUPPPA") #TODO delete
     if post_db is None:
         raise HTTPException(status_code=404, detail="Post not found")
     if post_db.author_id != current_user.id:
