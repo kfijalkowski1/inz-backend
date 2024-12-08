@@ -12,6 +12,7 @@ from typing import List
 from code.app.models.posts import PostBase, PostResponse
 from code.elastic_utils.queries import get_posts_id_containing
 from code.database.declarations.users import Users as User
+from .users_roles import UsersRoles
 
 
 class Posts(Base):
@@ -25,11 +26,14 @@ class Posts(Base):
     file_group_paths: Mapped[List[str]] = mapped_column(ARRAY(String), default=[], nullable=True)
 
 
-def get_posts(session: Session):
-    return session.query(Posts).all()
+def get_posts(session: Session, user_id: str):
+    user_estate = session.query(UsersRoles).filter(UsersRoles.user_id == user_id).first().estate_id
+    return (session.query(Posts).select_from(Posts).join(UsersRoles, Posts.author_id == UsersRoles.user_id)
+            .filter(UsersRoles.estate_id == user_estate).all())
 
 def add_post(session: Session, post: PostBase, user_id: str):
-    db_post = Posts(title=post.title, description=post.description, author_id=user_id, created_at=str(datetime.datetime.now()), file_group_paths=[])
+    db_post = Posts(title=post.title, description=post.description, author_id=user_id,
+                    created_at=str(datetime.datetime.now()), file_group_paths=[])
     session.add(db_post)
     session.commit()
     return db_post
@@ -40,9 +44,11 @@ def get_post(session: Session, post_id: str) -> Posts | None:
 def get_user_posts(session: Session, user_id: str):
     return session.query(Posts).filter(Posts.author_id == user_id).all()
 
-def get_posts_containing(session: Session, phrase: str):
+def get_posts_containing(session: Session, phrase: str, user_id: str):
     posts_ids = get_posts_id_containing(phrase)
-    return session.query(Posts).filter(Posts.id.in_(posts_ids)).all()
+    user_estate = session.query(UsersRoles).filter(UsersRoles.user_id == user_id).first().estate_id
+    return (session.query(Posts).select_from(Posts).join(UsersRoles, Posts.author_id == UsersRoles.user_id)
+            .filter(UsersRoles.estate_id == user_estate, Posts.id.in_(posts_ids)).all())
 
 def edit_post_in_db(session: Session, post_id: str, post: PostBase):
     db_post = get_post(session, post_id)

@@ -7,10 +7,12 @@ class User(BaseModel):
     username: str
 
 class UserBase(User):
-    name: str | None
-    surname: str | None
-    username: str
     id: str
 
 class UserRegister(User):
     password: str
+    estate_id: str
+
+class UserInfo(UserBase):
+    estate_name: str
+    role: str

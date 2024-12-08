@@ -4,8 +4,8 @@ from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from code.app.models.users import UserRegister, UserBase
-from code.database.declarations.users import Users as User, add_user
+from code.app.models.users import UserRegister, UserInfo
+from code.database.declarations.users import Users as User, add_user, get_user_estate_roles
 from code.app.models.token import Token
 from code.app.utils.security import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, \
     get_current_active_user, get_password_hash
@@ -42,8 +42,11 @@ async def create_user(user: UserRegister, db: Session = Depends(get_db)):
     pass_hash = get_password_hash(user.password)
     return add_user(db, user, pass_hash)
 
-@router.get("/users/me/", response_model=None)
+@router.get("/users/me/", response_model=UserInfo)
 async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Session = Depends(get_db)
 ):
-    return UserBase(username=current_user.username, name=current_user.name, surname=current_user.surname, id=current_user.id)
+    estate, role = get_user_estate_roles(db, current_user.id)
+    return UserInfo(username=current_user.username, name=current_user.name, surname=current_user.surname,
+                    id=current_user.id, estate_name=estate, role=role)

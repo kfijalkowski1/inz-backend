@@ -21,8 +21,10 @@ router = APIRouter(
 
 
 @router.get("", response_model=List[PostResponse])
-async def read_posts(db: Session = Depends(get_db)):
-    return [parse_post_to_response(db, found_post) for found_post in get_posts(db)]
+async def read_posts(current_user: Annotated[User, Depends(get_current_active_user)], db: Session = Depends(get_db)):
+    posts = get_posts(db, current_user.id)
+    logger.info(f"Getting posts: {posts}")
+    return [parse_post_to_response(db, found_post) for found_post in posts]
 
 @router.post("/add", response_model=PostResponse)
 async def create_item(item: PostBase, current_user: Annotated[User, Depends(get_current_active_user)], db_session: Session = Depends(get_db)):
@@ -30,9 +32,9 @@ async def create_item(item: PostBase, current_user: Annotated[User, Depends(get_
     return parse_post_to_response(db_session, add_post(session=db_session, post=item, user_id=current_user.id))
 
 @router.get("/search/{phrase}", response_model=List[PostResponse])
-async def search_posts(phrase: str, db: Session = Depends(get_db)):
+async def search_posts(phrase: str,current_user: Annotated[User, Depends(get_current_active_user)], db: Session = Depends(get_db)):
     logger.info(f"Searching posts with phrase: {phrase}")
-    return [parse_post_to_response(db, found_post) for found_post in get_posts_containing(db, phrase)]
+    return [parse_post_to_response(db, found_post) for found_post in get_posts_containing(db, phrase, current_user.id)]
 
 @router.get("/{post_id}", response_model=PostResponse)
 async def post(post_id: str, db: Session = Depends(get_db)):
@@ -52,7 +54,6 @@ async def user_post(post_id: str, current_user: Annotated[User, Depends(get_curr
 @router.post("/edit/{post_id}", response_model=PostResponse)
 async def edit_post(post_id: str, item: PostBase, current_user: Annotated[User, Depends(get_current_active_user)], db_session: Session = Depends(get_db)):
     post_db = get_post(db_session, post_id)
-    logger.info("DDDUPPPA") #TODO delete
     if post_db is None:
         raise HTTPException(status_code=404, detail="Post not found")
     if post_db.author_id != current_user.id:
