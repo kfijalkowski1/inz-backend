@@ -16,3 +16,13 @@ class UserRegister(User):
 class UserInfo(UserBase):
     estate_name: str
     role: str
+
+class WorkerRegister(User):
+    password: str
+    type: str
+    manager_id: str
+    is_manager: bool
+
+class WorkerInfo(UserBase):
+    role: str
+    manager_id: str

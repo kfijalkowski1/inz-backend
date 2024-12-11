@@ -10,7 +10,7 @@ from ...package_utils import logger
 class Estate(Base):
     __tablename__ = "estate"
 
-    id: Mapped[str] = mapped_column(primary_key=True, default=uuid.uuid4())
+    id: Mapped[str] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(String, nullable=True)
 

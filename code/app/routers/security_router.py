@@ -9,6 +9,7 @@ from code.database.declarations.users import Users as User, add_user, get_user_e
 from code.app.models.token import Token
 from code.app.utils.security import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, \
     get_current_active_user, get_password_hash
+from code.database.declarations.users_roles import Roles
 from code.database.utils import get_db
 
 router = APIRouter(
@@ -40,7 +41,7 @@ async def login_for_access_token(
 @router.post("/users/add", response_model=None)
 async def create_user(user: UserRegister, db: Session = Depends(get_db)):
     pass_hash = get_password_hash(user.password)
-    return add_user(db, user, pass_hash)
+    return add_user(db, user, pass_hash, Roles.USER)
 
 @router.get("/users/me/", response_model=UserInfo)
 async def read_users_me(

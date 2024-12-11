@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 
 from .common import Base
 from sqlalchemy.orm import Mapped, Session
@@ -8,12 +7,13 @@ from sqlalchemy import String
 from code.app.models.users import UserRegister
 from .estate import Estate
 from .users_roles import UsersRoles, Roles
+from ...package_utils.exceptions import DBException, USER_EXISTS
 
 
 class Users(Base):
     __tablename__ = "users"
 
-    id: Mapped[str] = mapped_column(primary_key=True, default=uuid.uuid4())
+    id: Mapped[str] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String, nullable=True)
     surname: Mapped[str] = mapped_column(String, nullable=True)
     hashed_password: Mapped[str] = mapped_column(String)
@@ -24,13 +24,17 @@ def get_user(session: Session, username: str) -> Users | None:
     return session.query(Users).filter(Users.username == username).first()
 
 
-def add_user(session: Session, user: UserRegister, hashed_password: str) -> Users:
+def add_user(session: Session, user: UserRegister, hashed_password: str, role: Roles) -> Users:
+    # check username
+    username_exists = session.query(Users).filter(Users.username == user.username).first()
+    if username_exists:
+        raise DBException(USER_EXISTS)
     user_database = Users(name=user.name, surname=user.surname, hashed_password=hashed_password, username=user.username)
     session.add(user_database)
     session.commit()
     user_id = session.query(Users).filter(Users.username == user.username).first().id
     estate_id = session.query(Estate).first().id
-    user_role = UsersRoles(user_id=user_id, role=Roles.USER, estate_id=estate_id)
+    user_role = UsersRoles(user_id=user_id, role=role, estate_id=estate_id)
     session.add(user_role)
     session.commit()
 
@@ -42,3 +46,5 @@ def get_user_estate_roles(session: Session, user_id: str) -> tuple[str, str]:
     role = str(roles.role.value)
     return estate_name, role
 
+def get_user_estate_id(session: Session, user_id: str) -> str:
+    return session.query(UsersRoles).filter(UsersRoles.user_id == user_id).first().estate_id
