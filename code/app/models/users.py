@@ -17,12 +17,14 @@ class UserInfo(UserBase):
     estate_name: str
     role: str
 
-class WorkerRegister(User):
-    password: str
+class WorkerRegister(BaseModel):
+    user_id: str
     type: str
     manager_id: str
     is_manager: bool
 
 class WorkerInfo(UserBase):
-    role: str
-    manager_id: str
+    type: str
+    is_manager: bool
+    manager_name: str | None
+    manager_surname: str | None

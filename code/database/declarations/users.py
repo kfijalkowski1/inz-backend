@@ -46,5 +46,12 @@ def get_user_estate_roles(session: Session, user_id: str) -> tuple[str, str]:
     role = str(roles.role.value)
     return estate_name, role
 
+def get_all_estate_users(session: Session, current_user: Users) -> list[Users]:
+    estate_id = get_user_estate_id(session, current_user.id)
+    return (session.query(Users).select_from(Users).join(UsersRoles).
+            filter(UsersRoles.estate_id == estate_id, UsersRoles.role == Roles.USER).all())
+
+
 def get_user_estate_id(session: Session, user_id: str) -> str:
     return session.query(UsersRoles).filter(UsersRoles.user_id == user_id).first().estate_id
+

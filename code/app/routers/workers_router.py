@@ -3,8 +3,8 @@ from typing import Annotated, List
 from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 
-from code.app.models.users import WorkerInfo, WorkerRegister, User, UserBase
-from code.app.utils.security import get_current_active_user, get_password_hash
+from code.app.models.users import WorkerInfo, WorkerRegister, UserBase
+from code.app.utils.security import get_current_active_user
 from code.database.declarations.users_roles import Roles, get_user_roles
 from code.database.declarations.worker import add_worker, get_workers, Types, get_estate_managers
 from code.database.utils import get_db
@@ -22,8 +22,7 @@ router = APIRouter(
 async def add(worker_info: WorkerRegister, current_user: Annotated[Users, Depends(get_current_active_user)], db: Session = Depends(get_db)):
     if get_user_roles(db, current_user.id) != Roles.ADMIN:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    hashed_password = get_password_hash(worker_info.password)
-    return add_worker(db, worker_info, current_user.id, hashed_password)
+    return add_worker(db, worker_info)
 
 
 @router.get("/all", response_model=List[WorkerInfo])
