@@ -5,7 +5,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from code.app.models.users import UserRegister, UserInfo, UserBase
-from code.database.declarations.users import Users as User, add_user, get_user_estate_roles, get_all_estate_users
+from code.database.declarations.users import Users as User, add_user, get_user_estate_roles, get_all_estate_users, \
+    get_user_name_surname_db
 from code.app.models.token import Token
 from code.app.utils.security import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, \
     get_current_active_user, get_password_hash
@@ -68,3 +69,7 @@ async def read_users_me(
     if role != Roles.ADMIN.value:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return get_all_estate_users(db, current_user)
+
+@router.get("/user_name_surname/{user_id}", response_model=str)
+async def get_user_name_surname(user_id: str, db: Session = Depends(get_db)):
+    return get_user_name_surname_db(db, user_id)

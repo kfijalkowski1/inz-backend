@@ -3,16 +3,16 @@ import uuid
 from .common import Base
 from sqlalchemy.orm import Mapped, Session, aliased
 from sqlalchemy.orm import mapped_column
-from sqlalchemy import ForeignKey, Enum, Boolean, text
+from sqlalchemy import ForeignKey, Enum, Boolean
 from enum import Enum as EnumC
-from code.package_utils.exceptions import DBException, BAD_WORKER_TYPE
-from .users import add_user, get_user_estate_id, Users
+from code.package_utils.exceptions import DBException, BAD_WORKER_TYPE, BAD_DEPARTMENT
+from .users import get_user_estate_id, Users
 from .users_roles import UsersRoles, Roles
 
-from ...app.models.users import WorkerRegister, UserRegister, WorkerInfo
+from ...app.models.users import WorkerRegister, WorkerInfo
 
 
-class Types(EnumC):
+class Department(EnumC):
     OTHER = "inne"
     MAINTEINANCE = "konserwacja"
     CLEANING = "sprzątanie"
@@ -25,7 +25,7 @@ class Worker(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), unique=True)
-    type: Mapped[Types] = mapped_column(Enum(Types), nullable=False)
+    type: Mapped[Department] = mapped_column(Enum(Department), nullable=False)
     manager_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=True)
     is_manager: Mapped[bool] = mapped_column(Boolean, default=False)
 
@@ -36,7 +36,7 @@ def get_worker(session: Session, user_id: str) -> Worker | None:
 
 def add_worker(session: Session, worker: WorkerRegister) -> Worker:
     try:
-        worker_type = Types(worker.type)
+        worker_type = Department(worker.type)
     except ValueError:
         raise DBException(BAD_WORKER_TYPE)
     # change user to worker
@@ -50,7 +50,12 @@ def add_worker(session: Session, worker: WorkerRegister) -> Worker:
     return worker_database
 
 
-def get_workers(session: Session, admin_id) -> list[WorkerInfo]:
+def get_workers(session: Session, admin_id: str, departments_list=None) -> list[WorkerInfo]:
+    if departments_list is None:
+        departments_list = [x for x in Department]
+    for department in departments_list:
+        if department not in Department:
+            raise DBException(BAD_DEPARTMENT)
     estate_id = get_user_estate_id(session, admin_id)
     manager_alias = aliased(Users)  # Use an alias for the manager table
     return (
@@ -69,6 +74,7 @@ def get_workers(session: Session, admin_id) -> list[WorkerInfo]:
         .join(Users, Users.id == Worker.user_id)
         .join(manager_alias, manager_alias.id == Worker.manager_id, isouter=True)  # Use the alias for the manager join
         .filter(UsersRoles.estate_id == estate_id)
+        .filter(Worker.type.in_(departments_list))
         .all()
     )
 
@@ -81,3 +87,10 @@ def get_estate_managers(session: Session, admin_id: str) -> list[Users]:
             .select_from(Worker).join(Users, Worker.user_id == Users.id).join(UsersRoles,
                                                                                  Users.id == UsersRoles.user_id)
             .filter(UsersRoles.estate_id == estate_id, Worker.is_manager == True).group_by(Users.id).all())
+
+
+def is_user_manager(session: Session, user_id: str) -> bool:
+    return session.query(Worker).filter(Worker.user_id == user_id, Worker.is_manager == True).first() is not None
+
+def is_user_worker(session: Session, user_id: str) -> bool:
+    return session.query(Worker).filter(Worker.user_id == user_id).first() is not None

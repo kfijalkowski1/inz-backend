@@ -55,3 +55,6 @@ def get_all_estate_users(session: Session, current_user: Users) -> list[Users]:
 def get_user_estate_id(session: Session, user_id: str) -> str:
     return session.query(UsersRoles).filter(UsersRoles.user_id == user_id).first().estate_id
 
+def get_user_name_surname_db(session: Session, user_id: str) -> str:
+    user = session.query(Users).filter(Users.id == user_id).first()
+    return f"{user.name}, {user.surname}"

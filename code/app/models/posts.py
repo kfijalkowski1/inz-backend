@@ -1,3 +1,5 @@
+import datetime
+
 from pydantic import BaseModel
 
 class PostBase(BaseModel):
@@ -7,7 +9,7 @@ class PostBase(BaseModel):
 
 class PostResponse(PostBase):
     id: str
-    created_at: str
+    created_at: datetime.datetime
     author_name: str
     author_id: str
 
