@@ -24,3 +24,16 @@ class RequestUpdate(BaseModel):
     status: str
     visibility: str
     assignee_id: str
+
+
+class RequestCommentInput(BaseModel):
+    content: str
+    request_id: str
+
+class RequestComment(RequestCommentInput):
+    id: str
+    author_name: str
+    author_surname: str
+    created_at: datetime.datetime
+    author_type: str
+    content: str
