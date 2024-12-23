@@ -7,7 +7,7 @@
 # To get a newer version, you will need to update the SHA.
 # You can also reference a tag or branch, but the action may change without warning.
 
-name: Publish Docker image
+name: Publish Docker image & deploy back-end
 
 on:
   push:
@@ -54,3 +54,22 @@ jobs:
           subject-name: docker.io/gambolkf/inz-back
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+  deploy_image:
+    name: Deploy new back-end version
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Restart Deployment on Remote Server
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no kfijalk@49.13.73.66 \
+          "minikube kubectl -- rollout restart deployment/fastapi-app -n back"
+    
