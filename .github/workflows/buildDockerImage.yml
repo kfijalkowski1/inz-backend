@@ -57,6 +57,7 @@ jobs:
   deploy_image:
     name: Deploy new back-end version
     runs-on: ubuntu-latest
+    needs: push_to_registry
     permissions:
       packages: write
       contents: read
