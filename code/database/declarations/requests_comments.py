@@ -41,8 +41,7 @@ def get_request_comments(session: Session, user_id: str, request_id: str):
         .filter(
             UsersRoles.estate_id == user_estate,
             RequestComments.request_id == request_id
-        )
-        .all()
+        ).order_by(RequestComments.created_at.desc()).all()
     )
 
     return  [
