@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from code.app.models.requests import RequestInput, RequestInfo, RequestUpdate, RequestCommentInput, RequestComment
 from code.app.utils.security import get_current_active_user
 from code.database.declarations.requests import add_request, get_user_requests, get_public_requests, \
-    set_request_assignee, set_request_department, set_request_status, get_request, Status, update_request_state, \
+    get_request, Status, update_request_state, \
     get_requests_containing, get_user_assigned_requests, get_all_requests_admin
 from code.database.declarations.requests_comments import RequestComments, add_request_comment, get_request_comments
 from code.database.declarations.users_roles import get_user_roles, Roles

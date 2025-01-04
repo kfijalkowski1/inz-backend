@@ -38,7 +38,6 @@ async def search_posts(phrase: str,current_user: Annotated[User, Depends(get_cur
 
 @router.get("/{post_id}", response_model=PostResponse)
 async def post(post_id: str, db: Session = Depends(get_db)):
-    logger.info(f"Getting post with id: {post_id}")
     return parse_post_to_response(db, get_post(db, post_id))
 
 @router.get("user", response_model=List[PostResponse])

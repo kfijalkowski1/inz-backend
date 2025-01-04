@@ -10,9 +10,6 @@ from contextlib import asynccontextmanager
 from fastapi.security import OAuth2PasswordBearer
 
 
-connectors = {}
-
-
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

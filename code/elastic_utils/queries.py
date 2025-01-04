@@ -1,9 +1,9 @@
 from code.elastic_utils.utils import es_client
 from typing import List
 
-def get_index_for_id_containing(index: str, phrase: str) -> List[str]:
+def get_ids_for_index_containing(index: str, phrase: str) -> List[str]:
     """
-    Get the ids of the index containing the phrase
+    Get the id field of the hit containing the phrase in given index
     :param index: index name (eg. posts)
     :param phrase: phrase to look for
     :return: List of post ids
@@ -18,7 +18,7 @@ def get_posts_id_containing(phrase: str) -> List[str]:
     :param phrase:
     :return: List of post ids
     """
-    return get_index_for_id_containing("posts", phrase)
+    return get_ids_for_index_containing("posts", phrase)
 
 
 def get_requests_id_containing(phrase: str) -> List[str]:
@@ -27,4 +27,4 @@ def get_requests_id_containing(phrase: str) -> List[str]:
     :param phrase:
     :return: List of post ids
     """
-    return get_index_for_id_containing("requests", phrase)
+    return get_ids_for_index_containing("requests", phrase)

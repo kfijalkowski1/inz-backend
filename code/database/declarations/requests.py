@@ -31,14 +31,14 @@ class Requests(Base):
     department: Mapped[Enum] = mapped_column(Enum(Department), nullable=True)
     status: Mapped[Enum] = mapped_column(Enum(Status), default=Status.NEW)
     visibility: Mapped[Enum] = mapped_column(Enum(Visibility), default=Visibility.PRIVATE)
-    start_time: Mapped[str] = mapped_column(DateTime)
-    end_time: Mapped[str] = mapped_column(DateTime, nullable=True)
+    start_time: Mapped[datetime.datetime] = mapped_column(DateTime)
+    end_time: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=True)
     assignee_id: Mapped[str] = mapped_column(ForeignKey(Users.id), nullable=True)
 
 
 def add_request(session, request: RequestInput, author_id: str) -> Requests:
     db_request = Requests(author_id=author_id, title=request.title, description=request.description,
-                          start_time=str(datetime.datetime.now()), department=Department.OTHER)
+                          start_time=datetime.datetime.now(), department=Department.OTHER)
     session.add(db_request)
     session.commit()
     return db_request
@@ -50,7 +50,7 @@ def get_request(session, request_id: str, user_id: str) -> Requests | None:
     user_estate = get_user_estate_id(session, user_id)
     return (session.query(Requests)
             .select_from(Requests)
-            .join(UsersRoles, UsersRoles.user_id == user_id)
+            .join(UsersRoles, UsersRoles.user_id == Requests.author_id)
             .filter(Requests.id == request_id, UsersRoles.estate_id == user_estate)
             .first())
 
@@ -66,37 +66,16 @@ def get_all_requests_admin(session: Session, user_id: str) -> list[Requests]:
     user_estate = get_user_estate_id(session, user_id)
     return (session.query(Requests)
             .select_from(Requests)
-            .join(UsersRoles, UsersRoles.user_id == user_id)
+            .join(UsersRoles, UsersRoles.user_id == Requests.author_id)
             .filter(UsersRoles.estate_id == user_estate)
             .all())
-
-def set_request_assignee(session, request_id: str, assignee_id: str):
-    session.query(Requests).filter(Requests.id == request_id).update({Requests.assignee: assignee_id})
-    session.commit()
-
-def set_request_status(session, request_id: str, status: str):
-    enum_status = Status(status)
-    if enum_status == Status.DONE:
-        session.query(Requests).filter(Requests.id == request_id).update({Requests.end_time: str(datetime.datetime.now())})
-    session.query(Requests).filter(Requests.id == request_id).update({Requests.status: enum_status})
-    session.commit()
-
-def set_visibility(session, request_id: str, visibility: str):
-    enum_visibility = Visibility(visibility)
-    session.query(Requests).filter(Requests.id == request_id).update({Requests.visibility: enum_visibility})
-    session.commit()
-
-def set_request_department(session, request_id: str, department: str):
-    enum_department = Department(department)
-    session.query(Requests).filter(Requests.id == request_id).update({Requests.department: enum_department})
-    session.commit()
 
 def update_request_state(session, request: RequestUpdate) -> None:
     enum_status = Status(request.status)
     enum_visibility = Visibility(request.visibility)
     enum_department = Department(request.department)
     if enum_status == Status.DONE:
-        session.query(Requests).filter(Requests.id == request.request_id).update({Requests.end_time: str(datetime.datetime.now())})
+        session.query(Requests).filter(Requests.id == request.request_id).update({Requests.end_time: datetime.datetime.now()})
 
     session.query(Requests).filter(Requests.id == request.request_id).update(
         {

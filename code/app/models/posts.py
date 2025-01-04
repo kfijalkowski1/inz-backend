@@ -12,6 +12,3 @@ class PostResponse(PostBase):
     created_at: datetime.datetime
     author_name: str
     author_id: str
-
-    class Config:
-        orm_mode = True
