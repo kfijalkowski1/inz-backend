@@ -1,22 +1,32 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# GitHub recommends pinning actions to a commit SHA.
-# To get a newer version, you will need to update the SHA.
-# You can also reference a tag or branch, but the action may change without warning.
-
-name: Publish Docker image & deploy back-end
+name: Test & Publish Docker image & deploy back-end
 
 on:
   push:
     branches: [main]
 
 jobs:
+  run_tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Run tests
+        run: python -m pytest
+
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    needs: run_tests
     permissions:
       packages: write
       contents: read
@@ -54,6 +64,7 @@ jobs:
           subject-name: docker.io/gambolkf/inz-back
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+
   deploy_image:
     name: Deploy new back-end version
     runs-on: ubuntu-latest
@@ -73,4 +84,3 @@ jobs:
         run: |
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no kfijalk@49.13.73.66 \
           "minikube kubectl -- rollout restart deployment/fastapi-app -n back"
-    
